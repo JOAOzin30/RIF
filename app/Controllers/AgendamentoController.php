@@ -29,11 +29,9 @@ class AgendamentoController extends BaseController
 
             // $matriculasString = is_array($post['matriculas']) && isset($post['matriculas'][0]) ? $post['matriculas'][0] : '';
             // $datasString      = is_array($post['datas']) && isset($post['datas'][0]) ? $post['datas'][0] : '';
-            // $status           = strip_tags($post['status']);
             // $motivo           = strip_tags($post['motivo']);
             $matriculas = $this->request->getPost('matriculas');
             $datasString      = $this->request->getPost('datas') ?? '';
-            $status           = strip_tags($this->request->getPost('status'));
             $motivo           = strip_tags($this->request->getPost('motivo'));
 
             if (empty($matriculas) || empty($datasString)) {
@@ -48,23 +46,23 @@ class AgendamentoController extends BaseController
 
             $controleModel = new ControleRefeicoesModel();
 
-        foreach ($matriculas as $matricula) {
-            foreach ($datas as $data) {
-                $existe = $controleModel
-                    ->where('aluno_id', $matricula)
-                    ->where('data_refeicao', $data)
-                    ->first();
+            foreach ($matriculas as $matricula) {
+                foreach ($datas as $data) {
+                    $existe = $controleModel
+                        ->where('aluno_id', $matricula)
+                        ->where('data_refeicao', $data)
+                        ->first();
 
-                if ($existe) {
-                    return $this->response->setJSON([
-                        'success' => false,
-                        'message' => "O aluno já possui agendamento no dia {$data}."
-                    ]);
+                    if ($existe) {
+                        return $this->response->setJSON([
+                            'success' => false,
+                            'message' => "O aluno já possui agendamento no dia {$data}."
+                        ]);
+                    }
                 }
             }
-        }
-
-            $inserido = $controleModel->createAgendamentos($matriculas, $datas, $status, $motivo);
+            $statusPadrao = 'Disponível';
+            $inserido = $controleModel->createAgendamentos($matriculas, $datas, $motivo);
 
             if ($inserido) {
                 $this->createSendMessages($matriculas, $datas);
@@ -177,6 +175,42 @@ class AgendamentoController extends BaseController
         }
 
         return redirect()->back();
+    }
+
+    public function deletarMulti()
+    {
+        $selecionados = $this->request->getPost('selecionados');
+
+        if (empty($selecionados)) {
+            return $this->response->setBody('Nenhum agendamento selecionado.');
+        }
+        
+        $controleModel = new ControleRefeicoesModel();
+        $erros = [];
+        $sucessos = 0;
+
+        foreach ($selecionados as $id) {
+            try {
+                if($controleModel->delete($id)) {
+                    $sucessos++; 
+                } else {
+                    $erros[] = "Não foi possível excluir o ID $id";
+                }
+
+            } catch (\Exception $e) {
+                $erros[] = "Erro ao excluir ID $id: " . $e->getMessage();
+            }
+        }
+
+        if (empty($erros)) {
+            echo "ok";
+        } else {
+            if ($sucessos > 0) {
+                echo "Exclusão parcial. Sucessos: $sucessos. Erros: " . implode(", ", $erros);
+            } else {
+                echo "Falha ao excluir: " . implode(", ", $erros);
+            }
+        }
     }
 
     

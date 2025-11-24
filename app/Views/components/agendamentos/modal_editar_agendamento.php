@@ -39,16 +39,6 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="edit_status" class="form-label">Status</label>
-                            <select class="form-select" name="status" id="edit_status" required>
-                                <option value="" disabled>Selecione o Status</option>
-                                <option value="0">Disponível</option>
-                                <option value="1">Confirmada</option>
-                                <option value="2">Retirada</option>
-                                <option value="3">Cancelada</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
                             <label for="edit_motivo" class="form-label">Motivo</label>
                             <select class="form-select" name="motivo" id="edit_motivo" required>
                                 <option value="" disabled>Selecione o motivo</option>
