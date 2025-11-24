@@ -24,7 +24,6 @@
                     <span data-bs-toggle="tooltip" title="Excluir itens selecionados" data-bs-placement="bottom">
                         <button type="button" class="btn btn-danger" id="btn-delete-multi" style="display: none;" data-bs-toggle="modal" data-bs-target="#modal-deletar-agendamentos">
                             <i class="fa fa-trash btn-icon-prepend"></i>
-                            <span class="d-none d-xl-inline ms-1">Excluir Selecionados</span>
                         </button>
                     </span>
                 </div>
@@ -38,7 +37,7 @@
                 <div class="mb-3">
                     <h5 class="card-title">Filtros</h5>
                     <div class="form-group row align-items-end">
-                      <div class="col-md-2">
+                      <div class="col-md-3">
                         <label>Turma</label>
                         <select id="filtro-turma" class="js-example-basic-single" style="width:100%">
                             <option value="">--</option>
@@ -47,17 +46,7 @@
                             <?php endforeach; ?>
                         </select>
                       </div>
-                      <div class="col-md-2">
-                        <label>Status</label>
-                        <select id="filtro-status" class="js-example-basic-single" style="width:100%">
-                            <option value="">--</option>
-                            <option value="Disponível">Disponível</option>
-                            <option value="Confirmada">Confirmada</option>
-                            <option value="Retirada">Retirada</option>
-                            <option value="Cancelada">Cancelada</option>
-                        </select>
-                      </div>
-                      <div class="col-md-2">
+                      <div class="col-md-3">
                         <label>Motivo</label>
                         <select id="filtro-motivo" class="js-example-basic-single" style="width:100%">
                             <option value="">--</option>
@@ -68,7 +57,7 @@
                             <option value="Visita Técnica">Visita Técnica</option>
                         </select>
                       </div>
-                      <div class="col-md-5">
+                      <div class="col-md-6">
                         <label for="">Período:</label>
                         <div id="datepicker-popup" class="input-group input-daterange d-flex align-items-center">
                             <input type="text" class="form-control" style="background-color: black;"> 
@@ -92,7 +81,7 @@
                         <table class="table mb-4" id="listagem-agendamentos">
                             <thead>
                                 <tr>
-                                    <th style="width: 5%; padding: 10px 18px;">
+                                    <th style="width: 5%;">
                                         <div class="form-check form-check-flat form-check-primary" style="margin: 0;">
                                             <label class="form-check-label">
                                                 <input type="checkbox" class="form-check-input" id="selectAll">
@@ -102,8 +91,7 @@
                                     </th>
                                     <th><strong>Aluno(a)<i class="mdi mdi-chevron-down"></i></strong></th>
                                     <th><strong>Turma<i class="mdi mdi-chevron-down"></i></strong></th>
-                                    <th><strong>Data<i class="mdi mdi-chevron-down"></i></strong></th>
-                                    <th><strong>Status<i class="mdi mdi-chevron-down"></i></strong></th>
+                                    <th><strong>Data do Agendamento<i class="mdi mdi-chevron-down"></i></strong></th>
                                     <th><strong>Motivo<i class="mdi mdi-chevron-down"></i></strong></th>
                                     <th style="text-align: center; width: 10%; min-width: 100px;"><strong>Ações</strong></th>
                                 </tr>
@@ -199,7 +187,6 @@
         const filtros = JSON.parse(salvo);
 
         $('#filtro-turma').val(filtros.turma);
-        $('#filtro-status').val(filtros.status);
         $('#filtro-motivo').val(filtros.motivo);
         $('#datepicker-popup input:first').val(filtros.dataInicio);
         $('#datepicker-popup input:last').val(filtros.dataFim);
@@ -252,9 +239,9 @@
         if (agendamentosData && agendamentosData.length > 0) {
             const tabela = $('#listagem-agendamentos').DataTable({
                 data: agendamentosData,
-                order: [[2, 'asc'], [0, 'asc']],
+                order: [[3, 'asc'], [1, 'asc']],
                 columnDefs: [
-                    { orderable: false, targets: [0, 6] }
+                    { orderable: false, targets: [0, 5] }
                 ],
                 columns: [
                     {
@@ -296,9 +283,7 @@
                     data: 'turma'
                 },{
                     data: 'data'
-                }, {
-                    data: 'status'
-                }, {
+                },{
                     data: 'motivo'
                 }, {
                     data: null,
@@ -383,7 +368,6 @@
 
             function filtrarTabela() {
                 const turmaSelecionada = $('#filtro-turma').val()?.trim();
-                const statusSelecionado = $('#filtro-status').val()?.toLowerCase().trim();
                 const motivoSelecionado = $('#filtro-motivo').val()?.toLowerCase().trim();
 
                 const dataInicioStr = $('#datepicker-popup input:first').val()?.trim(); 
@@ -395,7 +379,6 @@
                 const filtrados = agendamentosData.filter(item => {
 
                     const matchTurma = !turmaSelecionada || item.turma?.includes($('#filtro-turma option:selected').text().trim());
-                    const matchStatus = !statusSelecionado || item.status?.toLowerCase().trim() === statusSelecionado;
                     const matchMotivo = !motivoSelecionado || item.motivo?.toLowerCase().trim() === motivoSelecionado;
 
                     let matchData = true;
@@ -406,7 +389,7 @@
                         if (dataFim && itemData > dataFim) matchData = false;
                     }
 
-                    return matchTurma && matchStatus && matchMotivo && matchData;
+                    return matchTurma && matchMotivo && matchData;
                 });
 
                 tabela.clear().rows.add(filtrados).draw();
@@ -415,7 +398,6 @@
             function salvarFiltros() {
                 const filtros = {
                     turma: $('#filtro-turma').val(),
-                    status: $('#filtro-status').val(),
                     motivo: $('#filtro-motivo').val(),
                     dataInicio: $('#datepicker-popup input:first').val(),
                     dataFim: $('#datepicker-popup input:last').val()
@@ -424,13 +406,7 @@
                 localStorage.setItem('filtrosAgendamentos', JSON.stringify(filtros));
             }
 
-
             $('#filtro-turma').on('change', function() {
-                salvarFiltros();
-                filtrarTabela();
-            });
-
-            $('#filtro-status').on('change', function() {
                 salvarFiltros();
                 filtrarTabela();
             });
@@ -526,7 +502,6 @@
         $('#listagem-agendamentos').on('click', '.btn-editar-agendamento', function() {
             const data = $(this).data('edit-info');
             const deleteInfo = data.delete_info;
-            const statusMap = { 'Disponível': '0', 'Confirmada': '1', 'Retirada': '2', 'Cancelada': '3' };
             const motivoMap = { 'Contraturno': '0', 'Estágio': '1', 'Treino': '2', 'Projeto': '3', 'Visita Técnica': '4' };
 
             $('#edit_original_aluno_ids').val(deleteInfo.aluno_ids.join(','));
@@ -560,7 +535,6 @@
             }
 
             $('#edit_motivo').val(motivoMap[data.motivo] || deleteInfo.motivo);
-            $('#edit_status').val(statusMap[data.status]);
             
             alunosSelecionadosEdit.clear();
             data.alunos.forEach((nome, index) => {
