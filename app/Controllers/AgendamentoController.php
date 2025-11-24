@@ -107,19 +107,19 @@ class AgendamentoController extends BaseController
         $controleModel = new ControleRefeicoesModel();
 
         foreach ($newMatriculas as $matricula) {
-             foreach ($newDatas as $data) {
-                 $existe = $controleModel
+            foreach ($newDatas as $data) {
+                $existe = $controleModel
                 ->where('aluno_id', $matricula)
                 ->where('data_refeicao', $data)
                 ->where('motivo !=', $originalMotivo)
                 ->first();
 
-        if ($existe) {
-            session()->setFlashdata('erros', ["O aluno já possui agendamento no dia."]);
-            return redirect()->back();
+                if ($existe) {
+                    session()->setFlashdata('erros', ["O aluno já possui agendamento no dia."]);
+                    return redirect()->back();
+                }
+            }
         }
-    }
-}
 
         $sucesso = $controleModel->updateAgendamentos(
             $originalAlunoIds,
@@ -213,8 +213,7 @@ class AgendamentoController extends BaseController
                     foreach ($datasSelecionadas as $dataRefeicao) {
                         
                         $nomeAluno = $aluno['nome'];
-                        //$destinatario = $telefoneAluno['telefone'];
-                        $destinatario = '69992809488'; 
+                        $destinatario = $telefoneAluno['telefone'];
                         $data = (new \DateTime($dataRefeicao))->format('d/m/Y');
 
                         $mensagem = "Prezado(a) {$nomeAluno}\n";
