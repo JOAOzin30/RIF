@@ -34,7 +34,8 @@ class TurmaModel extends Model
 
     // Validation
     protected $validationRules      = [
-        'codTurma' => 'permit_empty|max_length[15]|is_unique[turmas.codTurma]',
+        'id' => 'permit_empty',
+        'codTurma' => 'permit_empty|max_length[15]|is_unique[turmas.codTurma,id,{id}]',
         'nome'     => 'required|min_length[3]|max_length[96]',
         'curso_id' => 'required|numeric'
     ];
