@@ -224,6 +224,7 @@
         if (agendamentosData && agendamentosData.length > 0) {
             const tabela = $('#listagem-agendamentos').DataTable({
                 data: agendamentosData,
+                order: [[2, 'asc'], [0, 'asc']],
                 columns: [{
                     data: 'turma_aluno',
                     render: function(data, type, row) {
