@@ -12,7 +12,7 @@ class ControleRefeicoesModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['aluno_id', 'data_refeicao', 'data_confirmacao', 'data_retirada', 'status', 'motivo'];
+    protected $allowedFields    = ['aluno_id', 'data_refeicao', 'data_confirmacao', 'data_retirada', 'motivo'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -57,7 +57,6 @@ class ControleRefeicoesModel extends Model
         foreach ($agendamentos as $agendamento) {
             $alunoId = $agendamento['aluno_id'];
             $motivo = $agendamento['motivo'];
-            $status = $agendamento['status'];
 
             $chaveAlunoMotivo = $alunoId . '|' . $motivo;
 
@@ -65,7 +64,6 @@ class ControleRefeicoesModel extends Model
                 $agendamentosPorAluno[$chaveAlunoMotivo] = [
                     'aluno_id' => $alunoId,
                     'motivo'   => $motivo,
-                    'status'   => $status,
                     'datas'    => []
                 ];
             }
@@ -82,7 +80,6 @@ class ControleRefeicoesModel extends Model
                 $agendamentosAgrupados[$chaveFinal] = [
                     'aluno_ids'      => [],
                     'datas_refeicao' => $dadosAluno['datas'],
-                    'status'         => $dadosAluno['status'],
                     'motivo'         => $dadosAluno['motivo'],
                 ];
             }
@@ -95,13 +92,6 @@ class ControleRefeicoesModel extends Model
     //Função que pega os agendamentos da tabela para chamar no index() do AgendamentoController.php
     public function getAgendamentosParaTabela(AlunoModel $alunoModel, TurmaModel $turmaModel): array
     {
-        $statusMap = [
-            0 => 'Disponível',
-            1 => 'Confirmada',
-            2 => 'Retirada',
-            3 => 'Cancelada',
-        ];
-
         $motivoMap = [
             0 => 'Contraturno',
             1 => 'Estágio',
@@ -114,7 +104,6 @@ class ControleRefeicoesModel extends Model
         $agendamentos = $this->select('
                 controle_refeicoes.id,
                 controle_refeicoes.data_refeicao,
-                controle_refeicoes.status,
                 controle_refeicoes.motivo,
                 alunos.matricula AS aluno_matricula,
                 alunos.nome AS aluno_nome,
@@ -136,7 +125,6 @@ class ControleRefeicoesModel extends Model
                 'turma_aluno'   => $a['aluno_nome'] ?? 'Sem nome',
                 'turma'         => $turmaCompleta ?: 'Sem turma',
                 'data'          => $a['data_refeicao'] ? (new \DateTime($a['data_refeicao']))->format('d/m/Y') : '',
-                'status'        => $statusMap[$a['status']] ?? 'Desconhecido',
                 'motivo'        => $motivoMap[$a['motivo']] ?? 'Não especificado',
                 'alunos'        => [$a['aluno_nome'] ?? 'Sem nome'], // array com apenas 1 aluno
                 'alunos_por_turma' => [$turmaCompleta ?: 'Sem turma' => [$a['aluno_nome'] ?? 'Sem nome']],
@@ -170,7 +158,7 @@ class ControleRefeicoesModel extends Model
     // FUNÇÃO COMO O MÉTODO CREATE() DO CONTROLLER --> AgendamentoController.php
     //
 
-    public function createAgendamentos(array $matriculas, array $datas, string $status, string $motivo): bool
+    public function createAgendamentos(array $matriculas, array $datas, string $motivo): bool
     {
         if (empty($matriculas) || empty($datas)) {
             return false;
@@ -193,7 +181,6 @@ class ControleRefeicoesModel extends Model
                 $dadosParaInserir[] = [
                     'aluno_id'      => $matricula,
                     'data_refeicao' => $data,
-                    'status'        => $status,
                     'motivo'        => $motivo,
                 ];
             }
@@ -216,7 +203,6 @@ class ControleRefeicoesModel extends Model
         string $originalMotivo,
         array $newMatriculas,
         array $newDatas,
-        string $newStatus,
         string $newMotivo
     ): bool {
         if (empty($newMatriculas) || empty($newDatas)) {
@@ -239,7 +225,6 @@ class ControleRefeicoesModel extends Model
                     $dadosParaInserir[] = [
                         'aluno_id'      => trim($matricula),
                         'data_refeicao' => trim($data),
-                        'status'        => $newStatus,
                         'motivo'        => $newMotivo,
                     ];
                 }
@@ -249,10 +234,6 @@ class ControleRefeicoesModel extends Model
                 $this->insertBatch($dadosParaInserir);
             }
 
-            if ($this->db->transStatus() === false) {
-                $this->db->transRollback();
-                return false;
-            }
 
             $this->db->transCommit();
             return true;
@@ -283,10 +264,6 @@ class ControleRefeicoesModel extends Model
                 ->whereIn('aluno_id', $alunoIds)
                 ->delete();
 
-            if ($this->db->transStatus() === false) {
-                $this->db->transRollback();
-                return false;
-            }
 
             $this->db->transCommit();
             return true;
