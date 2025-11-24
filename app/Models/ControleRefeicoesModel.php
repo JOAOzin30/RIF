@@ -126,6 +126,7 @@ class ControleRefeicoesModel extends Model
                 'turma'         => $turmaCompleta ?: 'Sem turma',
                 'data'          => $a['data_refeicao'] ? (new \DateTime($a['data_refeicao']))->format('d/m/Y') : '',
                 'motivo'        => $motivoMap[$a['motivo']] ?? 'Não especificado',
+                'turmas'        => [$a['turma_id']],
                 'alunos'        => [$a['aluno_nome'] ?? 'Sem nome'], // array com apenas 1 aluno
                 'alunos_por_turma' => [$turmaCompleta ?: 'Sem turma' => [$a['aluno_nome'] ?? 'Sem nome']],
                 'delete_info'   => [

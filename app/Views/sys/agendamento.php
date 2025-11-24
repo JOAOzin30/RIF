@@ -444,6 +444,7 @@
                 }
             });
 
+            // Função para deletar multiplos agendamentos
             $('#formDeletarMulti').on('submit', function(e) {
                 e.preventDefault();
                 const form = $(this);
@@ -473,7 +474,7 @@
                             });
                             
                             $('#modal-deletar-agendamentos').modal('hide');
-                            setTimeout(() => window.location.reload(), 1000);
+                            setTimeout(() => window.location.reload(), 100);
                         } else {
                             alert(response); 
                             $('#modal-deletar-agendamentos').modal('hide');
@@ -522,7 +523,11 @@
                         alunosSelect.empty();
 
                         alunos.forEach(aluno => {
-                            const selected = (deleteInfo.aluno_ids || []).includes(aluno.matricula);
+                            const matriculaString = String(aluno.matricula);
+                            const idsSalvos = (deleteInfo.aluno_ids || []).map(id => String(id));
+                            
+                            const selected = idsSalvos.includes(matriculaString);
+                            
                             const option = new Option(aluno.nome, aluno.matricula, selected, selected);
                             alunosSelect.append(option);
                         });

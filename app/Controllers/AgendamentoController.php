@@ -185,12 +185,17 @@ class AgendamentoController extends BaseController
             return $this->response->setBody('Nenhum agendamento selecionado.');
         }
         
+        $controleModel = new ControleRefeicoesModel();
         $erros = [];
         $sucessos = 0;
 
         foreach ($selecionados as $id) {
             try {
-                $sucessos++; 
+                if($controleModel->delete($id)) {
+                    $sucessos++; 
+                } else {
+                    $erros[] = "Não foi possível excluir o ID $id";
+                }
 
             } catch (\Exception $e) {
                 $erros[] = "Erro ao excluir ID $id: " . $e->getMessage();

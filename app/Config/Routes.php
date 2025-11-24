@@ -91,6 +91,7 @@ $routes->group('sys', [], static function ($routes) {
         $routes->get('admin/getAlunosByTurma', 'AgendamentoController::getAlunosByTurma');
         $routes->post('admin/update', 'AgendamentoController::update');
         $routes->post('admin/delete', 'AgendamentoController::delete');
+        $routes->post('admin/deletarMulti', 'AgendamentoController::deletarMulti');
     });
 
     //==============================================================

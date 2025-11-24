@@ -6,7 +6,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             
-            <form id="formDeletarMulti" method="post" action="<?= base_url('sys/agendamento/deletarMulti'); ?>">
+            <form id="formDeletarMulti" method="post" action="<?= base_url('sys/agendamento/admin/deletarMulti'); ?>">
                 <?= csrf_field() ?>
                 <div class="modal-body">
                     <p>Confirma a exclusão dos agendamentos selecionados?</p>
