@@ -1,6 +1,7 @@
 <?php echo view('components/agendamentos/modal_cadastrar_agendamento', ['turmas' => $turmas, 'alunos' => $alunos]) ?>
 <?php echo view('components/agendamentos/modal_editar_agendamento', ["turmas" => $turmas]); ?>
 <?php echo view('components/agendamentos/modal_deletar_agendamento');?>
+<?php echo view('components/agendamentos/modal_deletar_agendamentos');?>
 
 
 <div class="mb-3">
@@ -18,6 +19,12 @@
                         <button type="button" class="btn btn-primary btn-fw" data-bs-toggle="modal" data-bs-target="#modal-cadastrar-agendamento">
                             <i class="fa fa-plus-circle btn-icon-prepend"></i>
                             <span class="d-none d-md-inline ms-1">Novo Agendamento</span>
+                        </button>
+                    </span>
+                    <span data-bs-toggle="tooltip" title="Excluir itens selecionados" data-bs-placement="bottom">
+                        <button type="button" class="btn btn-danger" id="btn-delete-multi" style="display: none;" data-bs-toggle="modal" data-bs-target="#modal-deletar-agendamentos">
+                            <i class="fa fa-trash btn-icon-prepend"></i>
+                            <span class="d-none d-xl-inline ms-1">Excluir Selecionados</span>
                         </button>
                     </span>
                 </div>
@@ -85,6 +92,14 @@
                         <table class="table mb-4" id="listagem-agendamentos">
                             <thead>
                                 <tr>
+                                    <th style="width: 5%; padding: 10px 18px;">
+                                        <div class="form-check form-check-flat form-check-primary" style="margin: 0;">
+                                            <label class="form-check-label">
+                                                <input type="checkbox" class="form-check-input" id="selectAll">
+                                                <i class="input-helper"></i>
+                                            </label>
+                                        </div>
+                                    </th>
                                     <th><strong>Aluno(a)<i class="mdi mdi-chevron-down"></i></strong></th>
                                     <th><strong>Turma<i class="mdi mdi-chevron-down"></i></strong></th>
                                     <th><strong>Data<i class="mdi mdi-chevron-down"></i></strong></th>
@@ -128,6 +143,10 @@
         background-color: #28a745 !important;
         color: #fff !important;
     }
+
+    table.dataTable tbody td.dt-checkboxes-cell { 
+        vertical-align: middle; text-align: center; 
+    }
 </style>
 
 <script>
@@ -137,6 +156,7 @@
 
     let flatpickrEditInstance = null;
     const alunosSelecionadosEdit = new Map();
+    let tabela;
     
     function initTooltips() {
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -185,6 +205,14 @@
         $('#datepicker-popup input:last').val(filtros.dataFim);
     }
 
+    function alternarBotaoExcluir() {
+        const quantidade = $('.checkbox-item:checked').length;
+        if (quantidade > 0) {
+            $('#btn-delete-multi').fadeIn();
+        } else {
+            $('#btn-delete-multi').fadeOut();
+        }
+    }
 
     $(document).ready(function() {
         restaurarFiltros();
@@ -224,7 +252,25 @@
         if (agendamentosData && agendamentosData.length > 0) {
             const tabela = $('#listagem-agendamentos').DataTable({
                 data: agendamentosData,
-                columns: [{
+                order: [[2, 'asc'], [0, 'asc']],
+                columnDefs: [
+                    { orderable: false, targets: [0, 6] }
+                ],
+                columns: [
+                    {
+                        data: 'id',
+                        render: function(data, type, row) {
+                            return `
+                                <div class="form-check form-check-flat form-check-primary" style="margin: 0;">
+                                    <label class="form-check-label">
+                                        <input type="checkbox" class="form-check-input checkbox-item" name="selecionados[]" value="${data}">
+                                        <i class="input-helper"></i>
+                                    </label>
+                                </div>
+                            `;
+                        }
+                    },
+                    {
                     data: 'turma_aluno',
                     render: function(data, type, row) {
                         const alunosJson = JSON.stringify(row.alunos).replace(/'/g, "&apos;");
@@ -402,6 +448,65 @@
             $('#datepicker-popup input').on('keyup change', function() {
                 salvarFiltros();
                 filtrarTabela();
+            });
+
+            $(document).on('change', '#selectAll', function() {
+                const estaMarcado = $(this).is(':checked');
+                $('.checkbox-item').prop('checked', estaMarcado);
+                alternarBotaoExcluir();
+            });
+
+            $('#listagem-agendamentos tbody').on('change', '.checkbox-item', function() {
+                alternarBotaoExcluir();
+                if (!$(this).is(':checked')) {
+                    $('#selectAll').prop('checked', false);
+                }
+                const totalCheckboxes = $('.checkbox-item').length;
+                const totalMarcados = $('.checkbox-item:checked').length;
+                if(totalCheckboxes === totalMarcados && totalCheckboxes > 0) {
+                    $('#selectAll').prop('checked', true);
+                }
+            });
+
+            $('#formDeletarMulti').on('submit', function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const url = form.attr('action');
+                let ids = [];
+                $('.checkbox-item:checked').each(function() {
+                    ids.push($(this).val());
+                });
+
+                if (ids.length === 0) {
+                    alert('Nenhum item selecionado.');
+                    return;
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: { selecionados: ids },
+                    success: function(response) {
+                        if (response.trim() === "ok" || response.includes('sucesso')) {
+                            $.toast({
+                                heading: 'Sucesso',
+                                text: 'Agendamentos excluídos com sucesso!',
+                                icon: 'success',
+                                loaderBg: '#f96868',
+                                position: 'top-center'
+                            });
+                            
+                            $('#modal-deletar-agendamentos').modal('hide');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            alert(response); 
+                            $('#modal-deletar-agendamentos').modal('hide');
+                        }
+                    },
+                    error: function() {
+                        alert('Erro ao processar a solicitação.');
+                    }
+                });
             });
         } 
         
