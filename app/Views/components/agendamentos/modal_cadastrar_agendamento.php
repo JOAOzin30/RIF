@@ -37,16 +37,6 @@
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select py-2" id="status" name="status" required>
-                                <option value="" selected disabled>Selecione o Status</option>
-                                <option value="0">Disponível</option>
-                                <option value="1">Confirmada</option>
-                                <option value="2">Retirada</option>
-                                <option value="3">Cancelada</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
                             <label for="motivo" class="form-label">Motivo</label>
                             <select class="form-select" id="motivo" name="motivo" required>
                                 <option value="" selected disabled>Selecione o motivo</option>
