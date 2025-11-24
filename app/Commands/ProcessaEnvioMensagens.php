@@ -56,24 +56,30 @@ class ProcessaEnvioMensagens extends BaseCommand
 
                 $alunoId = $alunoTelefone['aluno_id'];
 
-                $refeicaoAlvo = $controleRefeicao
+                $podeEnviar = false;
+
+                if ($categoria == 0 || $categoria == 1){
+
+                    $refeicaoAlvo = $controleRefeicao
                                 ->where('aluno_id', $alunoId)
                                 ->whereIn('status', [0, 1]) 
                                 ->orderBy('data_refeicao', 'ASC')
                                 ->first();
                                     
-                $dataRefeicao = new DateTime($refeicaoAlvo['data_refeicao']);
-                $difHoras = ($dataRefeicao->getTimestamp() - (new DateTime())->getTimestamp()) / 3600;
+                    $dataRefeicao = new DateTime($refeicaoAlvo['data_refeicao']);
 
-                $podeEnviar = false;
+                    $difHoras = ($dataRefeicao->getTimestamp() - (new DateTime())->getTimestamp()) / 3600;
 
-                if ($categoria == 0 && $difHoras <= 48 && $difHoras >= 0) {
-                    $podeEnviar = true;
-                } elseif ($categoria == 1 && $difHoras <= 24 && $difHoras >= 0) {
-                    $podeEnviar = true;
-                } elseif ($categoria == 2) { 
-                    $podeEnviar = true;
+                    if ($categoria == 0 && $difHoras <= 48 && $difHoras >= 0) {
+                        $podeEnviar = true;
+                    } elseif ($categoria == 1 && $difHoras <= 24 && $difHoras >= 0) {
+                        $podeEnviar = true;
+                    }
                 }
+                
+                if ($categoria == 2) { 
+                    $podeEnviar = true;
+                }                
 
                 if (!$podeEnviar) {
                     continue; // não processa, vai para a próxima mensagem
