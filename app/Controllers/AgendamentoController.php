@@ -94,7 +94,6 @@ class AgendamentoController extends BaseController
         $newDatasString      = is_array($post['datas']) ? $post['datas'][0] : '';
         $newMatriculas       = !empty($newMatriculasString) ? explode(',', $newMatriculasString) : [];
         $newDatas            = !empty($newDatasString) ? explode(',', $newDatasString) : [];
-        $newStatus           = strip_tags($post['status']);
         $newMotivo           = strip_tags($post['motivo']);
 
         if (empty($newMatriculas) || empty($newDatas)) {
@@ -125,7 +124,6 @@ class AgendamentoController extends BaseController
             $originalMotivo,
             $newMatriculas,
             $newDatas,
-            $newStatus,
             $newMotivo
         );
 
