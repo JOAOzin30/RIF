@@ -6,10 +6,17 @@ use App\Models\CursoModel;
 use App\Models\TurmaModel;
 use CodeIgniter\Database\Exceptions\DatabaseException;
 use Exception;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+use PhpOffice\PhpSpreadsheet\Reader\Xls;
 
 class CursoController extends BaseController
 {
     protected $baseRoute = 'sys/cursos';
+
+    public function __construct()
+    {
+       $this->cursoModel = new CursoModel();
+    }
 
     public function index()
     {
@@ -138,4 +145,48 @@ class CursoController extends BaseController
         return $this->response->setJSON(['temTurmas' => $temTurmas]);
     }
 
+
+    public function ImportarCursos()
+    {
+        $pega_arquivo = $this->request->getFiles();
+        $planilha = $pega_arquivo['planilha-cursos'] ?? null;
+
+        if (!$planilha || !$planilha->isValid()) {
+            session()->setFlashdata('erros', ['Arquivo inválido.']);
+            return redirect()->to(base_url('sys/cursos'));
+        }
+
+        $verificar_extensão = $planilha->getClientExtension();
+        if (!in_array($verificar_extensão, ['xls', 'xlsx'])) {
+            session()->setFlashdata('erros', ['Formato inválido — use .xls ou .xlsx']);
+            return redirect()->to(base_url('sys/cursos'));
+        }
+
+        $xlsx_xls = $verificar_extensão === 'xlsx' ? new Xlsx() : new Xls();
+
+        try {
+            $carregar_excel = $xlsx_xls->load($planilha->getRealPath());
+        } catch (\Exception $erro) {
+            session()->setFlashdata('erros', ['Erro ao ler a planilha.']);
+            return redirect()->to(base_url('sys/cursos'));
+        }
+
+        $cotem_arquivo = $carregar_excel->getActiveSheet();
+        $array_excel = $cotem_arquivo->toArray();
+        array_shift($array_excel);
+
+        foreach ($array_excel as $linha) {
+            $nome_curso = trim(explode(',', $linha[1] ?? '')[0]); // pega só o que vem antes da vírgula
+            if ($nome_curso === ''){
+                continue;
+            } 
+
+            $curso_existente = $this->cursoModel->where('nome', $nome_curso)->first();
+            if (!$curso_existente) {
+                $this->cursoModel->insert(['nome' => $nome_curso]);
+            }
+            
+        }
+        return redirect()->to(base_url('sys/cursos'));
+    }
 }

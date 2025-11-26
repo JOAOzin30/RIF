@@ -3,7 +3,7 @@
 <?= $this->include('components/turmas/modal_deletar_turma', ['cursos' => $cursos]) ?>
 <?= $this->include('components/turmas/modal_importar_alunos_turma', ['cursos' => $cursos]) ?>
 <?= $this->include('components/turmas/modal_confirmar_senha') ?>
-
+<?= $this->include('components/turmas/modal_importar_turmas') ?>
 
 <div class="mb-3">
     <h2 class="card-title mb-0">Turmas</h2>
@@ -20,6 +20,12 @@
                         <i class="fa fa-plus-circle btn-icon-prepend"></i>
                         Nova Turma
                     </button>
+
+                    <!-- Importar turmas-->
+                  <button type="button" class="btn btn-info btn-fw" data-bs-toggle="modal" data-bs-target="#modal-importar-turma">
+                  <i class="fa fa-upload btn-icon-prepend"></i>
+                  Importar Turmas do SUAP
+                  </button>
                 </div>
             </div>
         </div>

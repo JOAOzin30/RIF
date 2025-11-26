@@ -29,6 +29,7 @@ $routes->group('sys', [], static function ($routes) {
         $routes->post('create', 'CursoController::create');
         $routes->post('update', 'CursoController::update');
         $routes->post('delete', 'CursoController::delete');
+        $routes->post('importar-cursos', 'CursoController::ImportarCursos');
         $routes->get('verificarTurmas/(:num)', 'CursoController::verificarTurmas/$1');
     });
 
@@ -43,6 +44,7 @@ $routes->group('sys', [], static function ($routes) {
         $routes->post('import', 'TurmaController::import');
         $routes->post('importProcess', 'TurmaController::importProcess'); 
         $routes->get('verificarAlunos/(:num)', 'TurmaController::verificarAlunos/$1');
+        $routes->post('importar-turmas', 'TurmaController::ImportarTurmas');
     });
 
     //==============================================================

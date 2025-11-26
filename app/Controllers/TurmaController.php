@@ -14,6 +14,12 @@ class TurmaController extends BaseController
 {
     protected $baseRoute = '/sys/turmas';
 
+    public function __construct(){
+        $this->turmas_model = new TurmaModel();
+        $this->cursoModel = new CursoModel();
+        $this->cursos_model = new AlunoModel();
+    }
+
     public function index()
     {
         $turmas_model = new TurmaModel();
@@ -142,7 +148,6 @@ class TurmaController extends BaseController
 
         return $this->response->setJSON(['temAlunos' => $temAlunos]);
     }
-
 
     /**
      * @route POST /turmas/import
@@ -281,4 +286,61 @@ class TurmaController extends BaseController
         
         return $redirect;
     }
+
+    /**
+     * @route POST /turmas/ImportarTurmas
+     */    
+    public function ImportarTurmas()
+    {
+    $planilha = $this->request->getFile('planilha-turmas');
+
+    if (!$planilha || !$planilha->isValid()) {
+        return redirect()->to(base_url('sys/turmas'));
+    }
+
+    $extensao = $planilha->getClientExtension();
+    if (!in_array($extensao, ['xls', 'xlsx'])) {
+        return redirect()->to(base_url('sys/turmas'));
+    }
+
+    $reader = $extensao === 'xlsx' ? new Xlsx() : new Xls();
+
+    try {
+        $spreadsheet = $reader->load($planilha->getRealPath());
+    } catch (\Exception $erro) {
+        return redirect()->to(base_url('sys/turmas'));
+    }
+
+    $sheet = $spreadsheet->getActiveSheet();
+    $array_excel = $sheet->toArray();
+    array_shift($array_excel); // remove cabeçalho
+
+    $turmaModel = new \App\Models\TurmaModel();
+
+    foreach ($array_excel as $linha) {
+        $nome_curso = trim(explode(',', $linha[1] ?? '')[0]); 
+        $nome_turma = trim($linha[2] ?? '');
+
+        if ($nome_curso === '' || $nome_turma === '') continue;
+
+        $curso_existente = $this->cursoModel->where('nome', $nome_curso)->first();
+        if (!$curso_existente) {
+            continue; // ignora turma se curso não existe
+        }
+
+        $turma_existente = $turmaModel
+            ->where('nome', $nome_turma)
+            ->where('curso_id', $curso_existente['id'])
+            ->first();
+
+        if (!$turma_existente) {
+            $turmaModel->insert([
+                'nome' => $nome_turma,
+                'curso_id' => $curso_existente['id']
+            ]);
+        }
+    }
+
+    return redirect()->to(base_url('sys/turmas'));
+ }
 }

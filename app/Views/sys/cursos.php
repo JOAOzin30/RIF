@@ -2,6 +2,7 @@
 <?php echo view('components/cursos/modal_editar_curso') ?>
 <?php echo view('components/cursos/modal_deletar_curso') ?>
 <?php echo view('components/cursos/modal_confirmar_senha_curso') ?>
+<?php echo view('components/cursos/modal_importar_cursos') ?>
 
 <div class="mb-3">
     <h2 class="card-title mb-0">Cursos</h2>
@@ -18,6 +19,12 @@
                         <i class="fa fa-plus-circle btn-icon-prepend"></i>
                         Novo Curso
                     </button>
+
+                  <!-- Importar cursos -->
+                  <button type="button" class="btn btn-info btn-fw" data-bs-toggle="modal" data-bs-target="#modal-importar-cursos">
+                  <i class="fa fa-upload btn-icon-prepend"></i>
+                  Importar Cursos do SUAP
+                  </button>
                 </div>
             </div>
         </div>
